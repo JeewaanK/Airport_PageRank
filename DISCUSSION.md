@@ -180,6 +180,16 @@ The degree ranking and PageRank ranking are similar but not identical. ATL has t
 
 This makes PageRank a stronger measure of structural importance than simple route count alone.
 
+## Visual Figures
+
+The first figure shows the top 15 airports by baseline binary PageRank. DEN, ATL, ORD, and DFW stand out as the most central airports in the route network. The bar chart also shows that the PageRank distribution is concentrated among a small group of major hubs, with scores gradually declining after the top few airports.
+
+![Top U.S. Airports by Binary PageRank](figures/top-airports-pagerank.png)
+
+The second figure shows the largest rank changes after removing ATL from the network. Positive values indicate that an airport moved up in the ranking after ATL was removed, while negative values indicate that an airport moved down. GLH and TUP show the largest rank improvements, but these should be interpreted carefully because they begin with very small PageRank scores. From a national hub perspective, the more meaningful changes are the PageRank increases for airports such as DFW, CLT, ORD, DTW, DEN, IAH, and MSP.
+
+![Largest Rank Changes After Removing ATL](figures/atl-removal-rank-changes.png)
+
 ## Hub-Closure Simulation
 
 The second part of the project studies a disruption scenario. ATL was removed from the network by deleting all routes where ATL was either the source or the destination. This simulates a major hub closure caused by an event such as severe weather, system failure, or airport shutdown.
