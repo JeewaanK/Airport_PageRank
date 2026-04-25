@@ -147,7 +147,7 @@ function stat(slide, value, label, x, y, w, color = C.primary) {
   ["549 airports", "5,450 directed routes", "ATL closure scenario"].forEach((t, i) =>
     addPill(slide, t, 0.72 + i * 2.1, 4.1, 1.85, i === 2 ? C.primary : "2C3839", C.white)
   );
-  slide.addText("Team: Mindeok Seo, Jake Barry, Jeewan Khadka, Yijia Zhang, Alan Tang", {
+  slide.addText("Team: Mindeok Seo, Jake Gust, Jeewan Khadka, Yijia Zhang, Alan Tang", {
     x: 0.72, y: 6.72, w: 7.9, h: 0.26, fontFace: "Calibri", fontSize: 10.5, color: "CDCCCA", margin: 0,
   });
   slide.addText("PageRank converts a route map into a ranking of structural importance.", {
@@ -334,7 +334,7 @@ function stat(slide, value, label, x, y, w, color = C.primary) {
   slide.addText("DEN, ATL, ORD, and DFW are structurally central. Removing ATL shifts importance to other hubs, showing both centrality and resilience.", {
     x: 9.62, y: 1.98, w: 2.25, h: 2.4, fontFace: "Calibri", fontSize: 15.5, color: C.white, margin: 0.02, fit: "shrink",
   });
-  slide.addText("Team: Mindeok Seo, Jake Barry, Jeewan Khadka, Yijia Zhang, Alan Tang", { x: 0.85, y: 5.45, w: 7.4, h: 0.25, fontFace: "Calibri", fontSize: 11.5, color: "CDCCCA", margin: 0 });
+  slide.addText("Team: Mindeok Seo, Jake Gust, Jeewan Khadka, Yijia Zhang, Alan Tang", { x: 0.85, y: 5.45, w: 7.4, h: 0.25, fontFace: "Calibri", fontSize: 11.5, color: "CDCCCA", margin: 0 });
   slide.addText("Repo: github.com/JeewaanK/Airport_PageRank", { x: 0.85, y: 6.35, w: 5.2, h: 0.25, fontFace: "Calibri", fontSize: 10.5, color: "CDCCCA", margin: 0 });
   addSlideNumber(slide, 11, "CDCCCA");
 }
