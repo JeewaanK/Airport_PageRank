@@ -49,7 +49,7 @@ After filtering, the final network contains:
 | Damping factor | 0.85 |
 | Baseline convergence | 112 iterations |
 
-The current notebook uses a binary adjacency matrix. If there are one or more direct routes from airport \(j\) to airport \(i\), the matrix entry is 1. Otherwise, it is 0. This means the model studies whether direct connectivity exists, not the number of flights, airlines, seats, or passengers on each route.
+The current notebook uses a binary adjacency matrix. If there are one or more direct routes from airport `j` to airport `i`, the matrix entry is 1. Otherwise, it is 0. This means the model studies whether direct connectivity exists, not the number of flights, airlines, seats, or passengers on each route.
 
 ## Mathematical Framework
 
@@ -59,25 +59,25 @@ The airport system is represented as a directed graph. Each airport is a node, a
 
 For example, a route from Denver to Chicago is represented as:
 
-\[
-\text{DEN} \rightarrow \text{ORD}
-\]
+```text
+DEN → ORD
+```
 
-The direction matters because a route from airport \(j\) to airport \(i\) contributes to the probability of moving from \(j\) to \(i\).
+The direction matters because a route from airport `j` to airport `i` contributes to the probability of moving from `j` to `i`.
 
 ### Adjacency Matrix
 
-The directed graph is converted into an adjacency matrix \(A\). The project uses the PageRank convention:
+The directed graph is converted into an adjacency matrix `A`. The project uses the PageRank convention:
 
-\[
-A_{ij} = 1
-\]
+```text
+Aᵢⱼ = 1
+```
 
-if there is a direct route from airport \(j\) to airport \(i\), and:
+if there is a direct route from airport `j` to airport `i`, and:
 
-\[
-A_{ij} = 0
-\]
+```text
+Aᵢⱼ = 0
+```
 
 otherwise.
 
@@ -85,47 +85,47 @@ In this convention, each column represents the airport being departed from, and 
 
 ### Transition Matrix
 
-The adjacency matrix is normalized into a transition matrix \(M\). Each column of \(M\) sums to 1:
+The adjacency matrix is normalized into a transition matrix `M`. Each column of `M` sums to 1:
 
-\[
-M_{ij} = \frac{A_{ij}}{\sum_i A_{ij}}
-\]
+```text
+Mᵢⱼ = Aᵢⱼ / Σᵢ Aᵢⱼ
+```
 
-This means \(M_{ij}\) represents the probability of moving from airport \(j\) to airport \(i\), assuming each outgoing route from \(j\) is equally likely.
+This means `Mᵢⱼ` represents the probability of moving from airport `j` to airport `i`, assuming each outgoing route from `j` is equally likely.
 
 If an airport has no outgoing routes, that airport creates a dangling column. The notebook handles dangling columns by replacing them with a uniform probability vector:
 
-\[
-M_{ij} = \frac{1}{N}
-\]
+```text
+Mᵢⱼ = 1 / N
+```
 
-where \(N\) is the number of airports.
+where `N` is the number of airports.
 
 ### PageRank and Damping Factor
 
 The PageRank update formula used in the notebook is:
 
-\[
-v_{k+1} = dMv_k + \frac{1-d}{N}e
-\]
+```text
+vₖ₊₁ = dMvₖ + ((1 − d) / N)e
+```
 
 where:
 
-- \(v_k\) is the PageRank vector at iteration \(k\).
-- \(M\) is the transition matrix.
-- \(d = 0.85\) is the damping factor.
-- \(N\) is the number of airports.
-- \(e\) is a vector of ones.
+- `vₖ` is the PageRank vector at iteration `k`.
+- `M` is the transition matrix.
+- `d = 0.85` is the damping factor.
+- `N` is the number of airports.
+- `e` is a vector of ones.
 
 The damping factor has an important interpretation. With probability 0.85, a traveler follows an actual flight route. With probability 0.15, the traveler randomly jumps to any airport in the network. This prevents the Markov chain from getting stuck and helps ensure convergence.
 
 At convergence, the PageRank vector satisfies:
 
-\[
+```text
 Gv = v
-\]
+```
 
-where \(G\) is the Google Matrix. Therefore, the final PageRank vector is the principal eigenvector associated with eigenvalue 1.
+where `G` is the Google Matrix. Therefore, the final PageRank vector is the principal eigenvector associated with eigenvalue 1.
 
 ## Baseline PageRank Results
 
