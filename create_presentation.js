@@ -39,6 +39,7 @@ const ROOT = __dirname;
 const FIG_TOP = path.join(ROOT, "figures", "top-airports-pagerank.png");
 const FIG_ATL = path.join(ROOT, "figures", "atl-removal-rank-changes.png");
 const FIG_ATL_SLIDE = path.join(ROOT, "figures", "atl-removal-rank-changes-slide.png");
+const FIG_SENSITIVITY = path.join(ROOT, "figures", "damping-factor-sensitivity.png");
 const OPENFLIGHTS = "https://openflights.org/data";
 const REPO = "https://github.com/JeewaanK/Airport_PageRank";
 
@@ -255,7 +256,24 @@ function stat(slide, value, label, x, y, w, color = C.primary) {
   addSlideNumber(slide, 6);
 }
 
-// Slide 7
+// Slide 7: Damping factor sensitivity analysis
+{
+  const slide = pptx.addSlide();
+  title(slide, "Damping Factor Sensitivity", "Are the top hubs stable across choices of d?");
+  slide.addImage({ path: FIG_SENSITIVITY, x: 0.6, y: 1.3, w: 7.4, h: 4.44 });
+  slide.addShape(pptx.ShapeType.roundRect, { x: 8.45, y: 1.22, w: 4.3, h: 4.7, rectRadius: 0.08, fill: { color: C.surface }, line: { color: C.border } });
+  slide.addText("Setup", { x: 8.65, y: 1.55, w: 3.7, h: 0.28, fontFace: "Trebuchet MS", fontSize: 16, bold: true, color: C.text, margin: 0 });
+  bulletList(slide, ["Recompute PageRank at d = 0.65, 0.75, 0.85, 0.95.", "Same transition matrix, same tolerance.", "Compare top hubs and full ranking."], 8.65, 1.92, 3.95, 1.4, 12.6);
+  slide.addText("Findings", { x: 8.65, y: 3.45, w: 2.5, h: 0.26, fontFace: "Trebuchet MS", fontSize: 14, bold: true, color: C.primary, margin: 0 });
+  bulletList(slide, ["DEN, ATL, ORD, DFW stay top 4 for every d.", "Spearman ρ ≥ 0.988 vs baseline.", "Top-10 set overlaps 9 of 10 in every case.", "Iterations rise: 43 → 64 → 112 → 353."], 8.65, 3.82, 3.95, 1.85, 12.6);
+  slide.addText("Top hubs are driven by network structure, not by d = 0.85.", {
+    x: 0.75, y: 6.05, w: 11.85, h: 0.32, fontFace: "Calibri", fontSize: 15.5, bold: true, color: C.primary, align: "center", margin: 0,
+  });
+  addSource(slide);
+  addSlideNumber(slide, 7);
+}
+
+// Slide 8
 {
   const slide = pptx.addSlide();
   title(slide, "Hub Closure Experiment", "What happens when ATL is removed?");
@@ -272,10 +290,10 @@ function stat(slide, value, label, x, y, w, color = C.primary) {
     x: 3.15, y: 4.02, w: 8.45, h: 0.58, fontFace: "Calibri", fontSize: 16, color: C.text, margin: 0, fit: "shrink",
   });
   addSource(slide);
-  addSlideNumber(slide, 7);
+  addSlideNumber(slide, 8);
 }
 
-// Slide 8
+// Slide 9
 {
   const slide = pptx.addSlide();
   title(slide, "Rank Changes After Removing ATL", "Largest movements in the disrupted network");
@@ -286,24 +304,25 @@ function stat(slide, value, label, x, y, w, color = C.primary) {
   slide.addText("Key message", { x: 8.75, y: 4.35, w: 2, h: 0.24, fontFace: "Trebuchet MS", fontSize: 13.5, bold: true, color: C.primary, margin: 0 });
   slide.addText("For hub-level interpretation, PageRank score change matters more than rank alone.", { x: 8.75, y: 4.68, w: 3.15, h: 0.45, fontFace: "Calibri", fontSize: 12, color: C.text, margin: 0, fit: "shrink" });
   addSource(slide);
-  addSlideNumber(slide, 8);
-}
-
-// Slide 9
-{
-  const slide = pptx.addSlide();
-  title(slide, "What We Learned", "Centrality and resilience in one model");
-  card(slide, 0.75, 1.45, 3.75, 2.6, "1. Centrality is recursive", "An airport is important when it is connected to other important airports, not only when it has many direct routes.", true);
-  card(slide, 4.8, 1.45, 3.75, 2.6, "2. The network is resilient", "Removing ATL changes rankings, but other hubs absorb importance. The national structure remains connected through multiple hubs.");
-  card(slide, 8.85, 1.45, 3.75, 2.6, "3. Local vulnerability remains", "Some regional airports lose importance when ATL is removed, showing that local dependence can be high even if the full network is resilient.");
-  slide.addText("PageRank gives a linear algebra-based way to quantify both structural importance and disruption response.", {
-    x: 1.0, y: 5.25, w: 11.3, h: 0.42, fontFace: "Calibri", fontSize: 18, bold: true, color: C.primary, align: "center", margin: 0,
-  });
-  addSource(slide);
   addSlideNumber(slide, 9);
 }
 
 // Slide 10
+{
+  const slide = pptx.addSlide();
+  title(slide, "What We Learned", "Centrality and resilience in one model");
+  card(slide, 0.55, 1.45, 3.05, 2.85, "1. Centrality is recursive", "An airport is important when it is connected to other important airports, not only when it has many direct routes.", true);
+  card(slide, 3.75, 1.45, 3.05, 2.85, "2. Robust to damping", "Top hubs stay the same for d = 0.65 through 0.95. The ranking reflects network structure, not the choice of d.");
+  card(slide, 6.95, 1.45, 3.05, 2.85, "3. The network is resilient", "Removing ATL changes rankings, but other hubs absorb importance. The national structure stays connected through multiple hubs.");
+  card(slide, 10.15, 1.45, 3.05, 2.85, "4. Local vulnerability remains", "Some regional airports lose importance when ATL is removed, showing that local dependence can be high even if the full network is resilient.");
+  slide.addText("PageRank gives a linear algebra-based way to quantify both structural importance and disruption response.", {
+    x: 1.0, y: 5.25, w: 11.3, h: 0.42, fontFace: "Calibri", fontSize: 18, bold: true, color: C.primary, align: "center", margin: 0,
+  });
+  addSource(slide);
+  addSlideNumber(slide, 10);
+}
+
+// Slide 11
 {
   const slide = pptx.addSlide();
   title(slide, "Limitations and Extensions", "How the project could be strengthened");
@@ -314,10 +333,10 @@ function stat(slide, value, label, x, y, w, color = C.primary) {
   slide.addText("Extensions", { x: 7.25, y: 1.7, w: 2.1, h: 0.28, fontFace: "Trebuchet MS", fontSize: 17, bold: true, color: C.primary, margin: 0 });
   bulletList(slide, ["Use BTS T-100 data to weight edges by passengers or flight counts.", "Compare PageRank with degree, betweenness, and eigenvector centrality.", "Simulate multiple hub closures.", "Map centrality shifts geographically."], 7.25, 2.15, 4.65, 2.2, 13.5);
   addSource(slide);
-  addSlideNumber(slide, 10);
+  addSlideNumber(slide, 11);
 }
 
-// Slide 11
+// Slide 12
 {
   const slide = pptx.addSlide();
   slide.background = { color: C.dark };
@@ -336,7 +355,7 @@ function stat(slide, value, label, x, y, w, color = C.primary) {
   });
   slide.addText("Team: Mindeok Seo, Jake Gust, Jeewan Khadka, Yijia Zhang, Alan Tang", { x: 0.85, y: 5.45, w: 7.4, h: 0.25, fontFace: "Calibri", fontSize: 11.5, color: "CDCCCA", margin: 0 });
   slide.addText("Repo: github.com/JeewaanK/Airport_PageRank", { x: 0.85, y: 6.35, w: 5.2, h: 0.25, fontFace: "Calibri", fontSize: 10.5, color: "CDCCCA", margin: 0 });
-  addSlideNumber(slide, 11, "CDCCCA");
+  addSlideNumber(slide, 12, "CDCCCA");
 }
 
 pptx.writeFile({ fileName: path.join(ROOT, "Airport_PageRank_Presentation.pptx") });

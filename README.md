@@ -149,6 +149,21 @@ Top baseline airports:
 | 9 | MSP | Minneapolis | 0.014548 |
 | 10 | LAS | Las Vegas | 0.014324 |
 
+## Damping factor sensitivity analysis
+
+The baseline result above uses the standard damping factor `d = 0.85`. Because that value is a modeling convention rather than a property of the data, the project also recomputes PageRank at `d = 0.65, 0.75, 0.85, 0.95` and compares the resulting top airports.
+
+Key findings:
+
+- DEN, ATL, ORD, and DFW remain the top four airports for every damping factor in the range. ORD and DFW only swap once at `d = 0.65`, where their scores are within `0.0004` of each other.
+- The Spearman rank correlation between the baseline ranking and each alternative ranking stays above `0.988` across all 549 airports.
+- The top-10 set overlaps in 9 out of 10 airports at every damping factor. The edge swap is between IAH or ANC and SLC, which is a small absolute change in PageRank score.
+- Iterations to convergence rise from 43 at `d = 0.65` to 353 at `d = 0.95`, consistent with the theoretical result that the convergence rate is governed by the second-largest eigenvalue, which approaches 1 as `d → 1`.
+
+Interpretation: lower damping means more random teleportation, so importance is more evenly distributed and the route structure matters less. Higher damping means the random-walk part of PageRank dominates, so the route structure matters more. The fact that the top hubs are stable across this range means the ranking is driven by the structure of the U.S. route network, not by the choice of `d = 0.85`. This makes the hub-closure conclusion that follows a statement about the network itself.
+
+The supporting figure is saved at `figures/damping-factor-sensitivity.png`, and the full comparison table is written to `outputs/damping_sensitivity.csv` when the notebook is run. See `DISCUSSION.md` for the full table and a more detailed interpretation.
+
 ## Hub-closure simulation
 
 The starter simulation removes ATL by deleting all incoming and outgoing ATL routes. Then it recomputes PageRank.
@@ -185,13 +200,15 @@ HUB_TO_REMOVE=ORD python airport_pagerank.py
 
 ## Generated outputs
 
-The script creates:
+The script and notebook create:
 
 - `outputs/baseline_airport_pagerank.csv`
 - `outputs/hub_closure_ATL_comparison.csv`
+- `outputs/damping_sensitivity.csv`
 - `outputs/top_airports_pagerank.png`
 - `outputs/hub_closure_ATL_rank_changes.png`
 - `outputs/airport_network_sample.png`
+- `figures/damping-factor-sensitivity.png`
 
 ## Suggested final presentation structure
 
@@ -200,9 +217,10 @@ The script creates:
 3. Linear algebra model: adjacency matrix, transition matrix, Google Matrix
 4. Algorithm: power iteration and convergence
 5. Baseline results: top airports by PageRank
-6. Perturbation experiment: removing a major hub
-7. Interpretation: which airports gain importance and what this says about resilience
-8. Limitations and extensions: historical data, weighted passenger-volume version, multiple hub closures
+6. Damping factor sensitivity analysis: rankings across `d = 0.65, 0.75, 0.85, 0.95`
+7. Perturbation experiment: removing a major hub
+8. Interpretation: which airports gain importance and what this says about resilience
+9. Limitations and extensions: historical data, weighted passenger-volume version, multiple hub closures
 
 ## Extensions
 

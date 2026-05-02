@@ -6,7 +6,7 @@ This project applies the PageRank algorithm to the U.S. airport route network to
 
 The analysis uses OpenFlights airport and route data. After filtering to direct routes between U.S. airports, the final network contains 549 airports and 5,450 directed route edges. The adjacency matrix is binary, meaning an entry equals 1 if a direct route exists and 0 otherwise. This version measures route connectivity rather than flight frequency or passenger volume.
 
-The PageRank algorithm converged in 112 iterations using a damping factor of 0.85. The highest-ranked airports in the baseline network were DEN, ATL, ORD, DFW, MSP, LAS, DTW, CLT, IAH, and ANC. These results show that PageRank identifies major airport hubs that are not only highly connected, but also connected to other important airports.
+The PageRank algorithm converged in 112 iterations using a damping factor of 0.85. The highest-ranked airports in the baseline network were DEN, ATL, ORD, DFW, MSP, LAS, DTW, CLT, IAH, and ANC. These results show that PageRank identifies major airport hubs that are not only highly connected, but also connected to other important airports. A sensitivity analysis across damping factors `d = 0.65, 0.75, 0.85, 0.95` confirms that this top-hub ranking is stable: the Spearman rank correlation against the baseline stays above 0.988 and the top-10 set overlaps in 9 out of 10 airports at every damping value tested.
 
 A hub-closure simulation was also performed by removing ATL from the network. After ATL was removed, DEN remained the top-ranked airport, while ORD, DFW, MSP, DTW, and CLT increased in relative importance. This suggests that the U.S. airport network has a distributed hub structure: removing one major hub changes the flow of importance, but the network does not completely collapse.
 
@@ -119,6 +119,8 @@ where:
 
 The damping factor has an important interpretation. With probability 0.85, a traveler follows an actual flight route. With probability 0.15, the traveler randomly jumps to any airport in the network. This prevents the Markov chain from getting stuck and helps ensure convergence.
 
+The choice of `d = 0.85` is the standard value introduced in the original PageRank paper. It is a modeling parameter rather than a property of the route data. Because the value is conventional, this discussion includes a sensitivity analysis (see the **Sensitivity to the Damping Factor** section below) that recomputes PageRank at `d = 0.65, 0.75, 0.85, 0.95` and verifies that the top airports are stable across this range.
+
 At convergence, the PageRank vector satisfies:
 
 ```text
@@ -189,6 +191,79 @@ The first figure shows the top 15 airports by baseline binary PageRank. DEN, ATL
 The second figure shows the largest rank changes after removing ATL from the network. Positive values indicate that an airport moved up in the ranking after ATL was removed, while negative values indicate that an airport moved down. GLH and TUP show the largest rank improvements, but these should be interpreted carefully because they begin with very small PageRank scores. From a national hub perspective, the more meaningful changes are the PageRank increases for airports such as DFW, CLT, ORD, DTW, DEN, IAH, and MSP.
 
 ![Largest Rank Changes After Removing ATL](figures/atl-removal-rank-changes.png)
+
+## Sensitivity to the Damping Factor
+
+The PageRank model in this project uses the standard damping factor `d = 0.85`. That value comes from the original PageRank paper and is a modeling convention rather than a property of the airport route network. To check that the baseline ranking is not an artifact of that single choice, PageRank was recomputed at four damping factors covering a wide range of teleportation behavior: `d = 0.65`, `d = 0.75`, `d = 0.85`, and `d = 0.95`.
+
+### Methodology
+
+The transition matrix `M` was held fixed. Only the damping factor in the update equation
+
+```text
+vₖ₊₁ = dMvₖ + ((1 − d) / N)e
+```
+
+was changed. The same convergence tolerance of `1e-10` was used in every run. The number of iterations to convergence increases sharply with `d`, which is consistent with the theoretical result that the convergence rate of power iteration is governed by the second-largest eigenvalue, which approaches 1 as `d → 1`.
+
+| Damping factor | Iterations to converge |
+|---:|---:|
+| 0.65 | 43 |
+| 0.75 | 64 |
+| 0.85 | 112 |
+| 0.95 | 353 |
+
+### Comparison of top airports across damping factors
+
+The table below shows how the top 10 airports under the baseline `d = 0.85` rank under each alternative damping factor.
+
+| IATA | City | Rank @ 0.65 | PageRank @ 0.65 | Rank @ 0.75 | PageRank @ 0.75 | Rank @ 0.85 | PageRank @ 0.85 | Rank @ 0.95 | PageRank @ 0.95 |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| DEN | Denver | 1 | 0.022856 | 1 | 0.024026 | 1 | 0.024626 | 1 | 0.025005 |
+| ATL | Atlanta | 2 | 0.019593 | 2 | 0.021023 | 2 | 0.022397 | 2 | 0.024479 |
+| ORD | Chicago | 4 | 0.018302 | 3 | 0.019763 | 3 | 0.021209 | 3 | 0.023311 |
+| DFW | Dallas-Fort Worth | 3 | 0.018719 | 4 | 0.019745 | 4 | 0.020595 | 4 | 0.021924 |
+| MSP | Minneapolis | 5 | 0.014386 | 5 | 0.015756 | 5 | 0.017080 | 5 | 0.018765 |
+| LAS | Las Vegas | 10 | 0.011682 | 7 | 0.013338 | 6 | 0.015197 | 6 | 0.017700 |
+| DTW | Detroit | 6 | 0.012138 | 6 | 0.013553 | 7 | 0.015189 | 7 | 0.017671 |
+| CLT | Charlotte | 7 | 0.011988 | 8 | 0.013198 | 8 | 0.014562 | 8 | 0.016677 |
+| IAH | Houston | 11 | 0.010849 | 11 | 0.012038 | 9 | 0.013387 | 9 | 0.015409 |
+| ANC | Anchorage | 8 | 0.011985 | 9 | 0.012928 | 10 | 0.013216 | 17 | 0.011336 |
+
+### Quantitative agreement between rankings
+
+Two summary measures are used to quantify how closely the rankings agree across damping factors. The first is the Spearman rank correlation against the baseline ranking at `d = 0.85`. The second is the size of the intersection of the top 10 set at each damping factor with the baseline top 10.
+
+| Damping factor | Spearman ρ vs `d = 0.85` | Top-10 overlap with `d = 0.85` |
+|---:|---:|---:|
+| 0.65 | 0.9896 | 9 / 10 |
+| 0.75 | 0.9963 | 9 / 10 |
+| 0.85 | 1.0000 | 10 / 10 |
+| 0.95 | 0.9885 | 9 / 10 |
+
+### Interpretation
+
+Several patterns emerge from the sensitivity analysis.
+
+The four highest-ranked airports — DEN, ATL, ORD, and DFW — remain in the top four for every damping factor in the range. The ordering of these four is unchanged at `d = 0.75`, `0.85`, and `0.95`. At `d = 0.65`, ORD and DFW swap into ranks 4 and 3 respectively, but they remain adjacent, and their PageRank scores are within `0.0004` of each other. MSP also remains at rank 5 across all damping factors.
+
+The lower portion of the top 10 is more sensitive. At low damping (`d = 0.65`), the random-teleportation term carries more weight, so airports that depend on a few specific connections — such as IAH — fall just outside the top 10, while a regionally well-connected airport like SLC moves into it. At high damping (`d = 0.95`), route structure dominates and the relatively isolated Alaskan sub-network around ANC has less influence, so ANC drops out of the top 10 in favor of SLC. These are small absolute changes in PageRank score but visible changes in rank because the scores in this part of the distribution are close together.
+
+The overall agreement is high: Spearman rank correlation across all 549 airports stays above `0.988` for every damping factor compared with the baseline, and the top-10 set overlaps in 9 of 10 airports in every case.
+
+### Why this strengthens the conclusions
+
+The sensitivity analysis adds robustness to the project for three reasons.
+
+First, the most important single result — that DEN, ATL, ORD, DFW, and MSP are the top structurally central airports in the U.S. binary route network — is shown to be a conclusion about the network rather than about the choice `d = 0.85`. The same airports top the ranking whether teleportation is generous (`d = 0.65`) or rare (`d = 0.95`).
+
+Second, the analysis gives a clearer interpretation of what damping does. Lower damping makes the model behave more like a uniform prior, so airports that are well distributed across the country gain importance. Higher damping makes the model behave more like a strict random walk on routes, so airports that sit at the center of dense subgraphs gain importance. Reading the sensitivity table makes this trade-off concrete.
+
+Third, the analysis shows that the hub-closure result that follows is not an artifact of damping. Because the baseline ranking is stable across damping factors, the redistribution of importance after removing ATL is a statement about the underlying network structure, not about a specific modeling choice.
+
+The supporting figure for this section is `figures/damping-factor-sensitivity.png`, which plots PageRank score versus damping factor for each of the top 10 baseline airports.
+
+![PageRank score versus damping factor for the top 10 baseline airports](figures/damping-factor-sensitivity.png)
 
 ## Hub-Closure Simulation
 
