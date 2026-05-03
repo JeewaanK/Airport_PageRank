@@ -1,206 +1,154 @@
-# Airport PageRank Project
+# Airport PageRank
 
-## Project title
+**Using the PageRank Algorithm to Identify Critical Airports in the U.S. Flight Network**
 
-Using the PageRank Algorithm to Identify Critical Airports in the U.S. Flight Network
+Course project for Applied Linear Algebra.
+Team: Mindeok Seo, Jake Gust, Jeewan Khadka, Yijia Zhang, Alan Tang.
 
-## Project goal
+## Overview
 
-This project uses the PageRank algorithm to rank airports by their structural importance in a directed flight-route network. Instead of measuring importance only by the number of direct routes, PageRank assigns a higher score to airports that receive routes from other important airports.
+This project applies the PageRank algorithm to the U.S. airport route network to identify airports that are structurally most important. Airports are modeled as nodes and direct flight routes as directed edges. PageRank assigns a higher score to airports that receive routes from other important airports, so it captures recursive structural importance instead of a plain count of direct routes.
 
-The project also studies network resilience by simulating the closure of a major hub airport and recomputing PageRank to see how airport rankings change.
+The project answers two questions:
 
-## Dataset
+1. **Which U.S. airports are most central by network structure?**
+2. **How does the network respond when a major hub (ATL) is removed?**
 
-This starter version uses the OpenFlights airport and route datasets:
+A damping-factor sensitivity analysis is also included to verify that the ranking is a property of the network rather than an artifact of the standard choice `d = 0.85`.
 
-- `data/airports.dat`: airport metadata, including IATA code, city, country, latitude, and longitude
-- `data/routes.dat`: directional flight routes between airports
+## Methodology
 
-The script filters the data to U.S. airports and direct routes only.
+The pipeline is the standard PageRank construction.
 
-Important limitation: OpenFlights route data is historical, so the results should be interpreted as a demonstration of the algorithm rather than a current operational ranking of U.S. airports. A stronger final version could use BTS T-100 data and weight edges by passenger volume or flight frequency.
+1. **Directed graph.** Each airport is a node. Each direct route is a directed edge `source → destination`.
+2. **Adjacency matrix.** `A[i, j] = 1` if there is a direct route from airport `j` to airport `i`, and `0` otherwise. Columns are departure airports, rows are arrival airports.
+3. **Transition matrix.** Each column of `A` is normalized so that columns sum to `1`. Dangling columns (airports with no outgoing routes) are replaced with the uniform distribution `1/N`.
+4. **Google Matrix.** `G = dM + (1 − d)(1/N)ee^T` with damping factor `d = 0.85`. With probability `d` a traveler follows an actual route; with probability `1 − d` the traveler teleports uniformly.
+5. **Power iteration.** Starting from the uniform vector, iterate `v_{k+1} = Gv_k` until `‖v_{k+1} − v_k‖_1 < 10^{-10}`. The converged vector is the principal eigenvector of `G` and gives the PageRank score of each airport.
 
-## Mathematical model
+## Data
 
-### 1. Directed graph
+The project uses the OpenFlights datasets in `data/`:
 
-Each airport is represented as a node.
+- `airports.dat` — airport metadata (IATA code, city, country, latitude, longitude)
+- `routes.dat` — directional flight routes between airports
 
-Each direct route is represented as a directed edge:
+The data is filtered to U.S. airports with valid IATA codes and direct routes whose source and destination are both U.S. airports.
 
-```text
-source airport -> destination airport
-```
+OpenFlights route data is historical, so the results should be read as a demonstration of the method rather than a current operational ranking.
 
-### 2. Adjacency matrix
+## Network statistics
 
-Let \(A\) be an \(N \times N\) adjacency matrix, where \(N\) is the number of airports.
+| Metric | Value |
+|---|---:|
+| Airports in network | 549 |
+| Directed route edges | 5,450 |
+| Adjacency matrix size | 549 × 549 |
+| Dangling airports | 7 |
+| Damping factor | 0.85 |
+| Convergence tolerance | 1e-10 |
+| Baseline iterations | 112 |
 
-The project uses the PageRank convention:
+## Key results
 
-```text
-A[i, j] = route strength from airport j to airport i
-```
+### Baseline ranking
 
-So columns represent the airport being departed from, and rows represent the airport being arrived at.
-
-For the unweighted version:
-
-\[
-A_{ij} =
-\begin{cases}
-1, & \text{if there is a route from airport } j \text{ to airport } i \\
-0, & \text{otherwise}
-\end{cases}
-\]
-
-For the weighted version, \(A_{ij}\) equals the number of airline-level routes from airport \(j\) to airport \(i\).
-
-### 3. Transition matrix
-
-The adjacency matrix is normalized by column to create a transition matrix \(M\):
-
-\[
-M_{ij} = \frac{A_{ij}}{\sum_i A_{ij}}
-\]
-
-Each column of \(M\) sums to 1. Therefore, \(M_{ij}\) can be interpreted as the probability of moving from airport \(j\) to airport \(i\).
-
-If an airport has no outgoing routes, the corresponding column is replaced with a uniform probability vector:
-
-\[
-M_{ij} = \frac{1}{N}
-\]
-
-This handles dangling nodes.
-
-### 4. Google Matrix
-
-The Google Matrix is:
-
-\[
-G = dM + (1-d)\frac{1}{N}ee^T
-\]
-
-where:
-
-- \(d = 0.85\) is the damping factor
-- \(e\) is a vector of ones
-- \(N\) is the number of airports
-
-The interpretation is:
-
-- With probability \(d\), a traveler follows an actual route.
-- With probability \(1-d\), a traveler randomly jumps to any airport.
-
-This prevents the Markov chain from getting stuck and ensures convergence.
-
-### 5. Power iteration
-
-Start with equal probability at each airport:
-
-\[
-v_0 =
-\begin{bmatrix}
-1/N \\
-1/N \\
-\vdots \\
-1/N
-\end{bmatrix}
-\]
-
-Then repeatedly compute:
-
-\[
-v_{k+1} = Gv_k
-\]
-
-The process stops when:
-
-\[
-\|v_{k+1} - v_k\|_1 < \epsilon
-\]
-
-The converged vector is the principal eigenvector of \(G\), and each entry gives the PageRank score of one airport.
-
-## Current baseline result
-
-Using the weighted OpenFlights U.S. route network:
-
-- Airports in network: 549
-- Directed route edges: 5,450
-- Damping factor: 0.85
-- Convergence tolerance: \(10^{-10}\)
-- Baseline convergence: 112 iterations
-
-Top baseline airports:
+The top 10 airports by binary PageRank are:
 
 | Rank | Airport | City | PageRank |
 |---:|---|---|---:|
-| 1 | ATL | Atlanta | 0.048802 |
-| 2 | DEN | Denver | 0.027141 |
-| 3 | ORD | Chicago | 0.026722 |
-| 4 | DFW | Dallas-Fort Worth | 0.024546 |
-| 5 | LAX | Los Angeles | 0.021247 |
-| 6 | CLT | Charlotte | 0.015888 |
-| 7 | ANC | Anchorage | 0.015841 |
-| 8 | PHX | Phoenix | 0.014946 |
-| 9 | MSP | Minneapolis | 0.014548 |
-| 10 | LAS | Las Vegas | 0.014324 |
+| 1 | DEN | Denver | 0.024626 |
+| 2 | ATL | Atlanta | 0.022397 |
+| 3 | ORD | Chicago | 0.021209 |
+| 4 | DFW | Dallas-Fort Worth | 0.020595 |
+| 5 | MSP | Minneapolis | 0.017080 |
+| 6 | LAS | Las Vegas | 0.015197 |
+| 7 | DTW | Detroit | 0.015189 |
+| 8 | CLT | Charlotte | 0.014562 |
+| 9 | IAH | Houston | 0.013387 |
+| 10 | ANC | Anchorage | 0.013216 |
 
-## Damping factor sensitivity analysis
+DEN ranks first even though ATL has the highest total degree, because PageRank weights connections by the importance of the source airport.
 
-The baseline result above uses the standard damping factor `d = 0.85`. Because that value is a modeling convention rather than a property of the data, the project also recomputes PageRank at `d = 0.65, 0.75, 0.85, 0.95` and compares the resulting top airports.
+![Top U.S. airports by PageRank](figures/top-airports-pagerank.png)
 
-Key findings:
+### Damping-factor sensitivity
 
-- DEN, ATL, ORD, and DFW remain the top four airports for every damping factor in the range. ORD and DFW only swap once at `d = 0.65`, where their scores are within `0.0004` of each other.
-- The Spearman rank correlation between the baseline ranking and each alternative ranking stays above `0.988` across all 549 airports.
-- The top-10 set overlaps in 9 out of 10 airports at every damping factor. The edge swap is between IAH or ANC and SLC, which is a small absolute change in PageRank score.
-- Iterations to convergence rise from 43 at `d = 0.65` to 353 at `d = 0.95`, consistent with the theoretical result that the convergence rate is governed by the second-largest eigenvalue, which approaches 1 as `d → 1`.
+The baseline uses `d = 0.85`, the standard value from the original PageRank paper. To check that the result is not an artifact of that choice, PageRank is recomputed at `d = 0.65, 0.75, 0.85, 0.95`.
 
-Interpretation: lower damping means more random teleportation, so importance is more evenly distributed and the route structure matters less. Higher damping means the random-walk part of PageRank dominates, so the route structure matters more. The fact that the top hubs are stable across this range means the ranking is driven by the structure of the U.S. route network, not by the choice of `d = 0.85`. This makes the hub-closure conclusion that follows a statement about the network itself.
+- DEN, ATL, ORD, and DFW remain the top four for every damping factor in the range. ORD and DFW only swap once at `d = 0.65`, where their scores are within `0.0004`.
+- Spearman rank correlation against the baseline ranking stays above `0.988` across all 549 airports.
+- The top-10 set overlaps in 9 of 10 airports at every damping factor.
+- Iterations to converge rise from `43` at `d = 0.65` to `353` at `d = 0.95`, consistent with the convergence rate being governed by the second-largest eigenvalue, which approaches `1` as `d → 1`.
 
-The supporting figure is saved at `figures/damping-factor-sensitivity.png`, and the full comparison table is written to `outputs/damping_sensitivity.csv` when the notebook is run. See `DISCUSSION.md` for the full table and a more detailed interpretation.
+The top hubs are stable across the whole range, so the baseline ranking is a property of the U.S. route network rather than of the modeling parameter `d = 0.85`.
 
-## Hub-closure simulation
+![PageRank score vs damping factor](figures/damping-factor-sensitivity.png)
 
-The starter simulation removes ATL by deleting all incoming and outgoing ATL routes. Then it recomputes PageRank.
+### Hub-closure simulation
 
-After removing ATL:
+Removing ATL by deleting all its incoming and outgoing routes leaves `5,145` directed edges. After recomputing PageRank:
 
-- ORD becomes the highest-ranked airport.
-- DEN, DFW, LAX, CLT, PHX, MSP, LAS, PHL, and SEA all move up by one rank because ATL is removed.
-- Some smaller airports show large rank changes because their relative position in the remaining network changes significantly.
+- DEN remains the top-ranked airport.
+- ORD, DFW, MSP, DTW, CLT, LAS, and IAH absorb most of the importance previously associated with ATL.
+- Some smaller regional airports lose a meaningful pathway and drop in PageRank score.
 
-This section can be expanded by testing several hubs:
+The network does not collapse: the U.S. system has a distributed hub structure, with national-level resilience but local-level vulnerability for airports whose connectivity depended on ATL.
 
-- ATL
-- ORD
-- DFW
-- DEN
-- LAX
-- CLT
+![Largest rank changes after removing ATL](figures/atl-removal-rank-changes.png)
+
+## Repository structure
+
+```
+.
+├── README.md                          Project landing page (this file)
+├── DISCUSSION.md                      Full written discussion of methods and results
+├── airport_pagerank_notebook.ipynb    End-to-end analysis notebook
+├── scripts/
+│   └── sensitivity.py                 Damping-factor sensitivity script
+├── data/
+│   ├── airports.dat                   OpenFlights airport metadata
+│   └── routes.dat                     OpenFlights route records
+├── figures/
+│   ├── top-airports-pagerank.png
+│   ├── atl-removal-rank-changes.png
+│   ├── atl-removal-rank-changes-slide.png
+│   └── damping-factor-sensitivity.png
+├── Airport_PageRank_Presentation.pptx Class presentation deck
+├── Airport_PageRank_Presentation.pdf  PDF export of the deck
+├── create_presentation.js             Script that builds the pptx deck
+├── requirements.txt                   Python dependencies
+├── package.json                       Node dependencies for the deck script
+└── package-lock.json
+```
 
 ## How to run
 
-From the project directory:
+Install Python dependencies and open the notebook:
 
 ```bash
 python -m pip install -r requirements.txt
-python airport_pagerank.py
+jupyter notebook airport_pagerank_notebook.ipynb
 ```
 
-To remove a different hub:
+Run the standalone damping-factor sensitivity script:
 
 ```bash
-HUB_TO_REMOVE=ORD python airport_pagerank.py
+python scripts/sensitivity.py
+```
+
+This regenerates `figures/damping-factor-sensitivity.png` and writes `outputs/damping_sensitivity.csv`.
+
+Rebuild the presentation deck (optional):
+
+```bash
+npm install
+node create_presentation.js
 ```
 
 ## Generated outputs
 
-The script and notebook create:
+Running the notebook produces:
 
 - `outputs/baseline_airport_pagerank.csv`
 - `outputs/hub_closure_ATL_comparison.csv`
@@ -208,27 +156,26 @@ The script and notebook create:
 - `outputs/top_airports_pagerank.png`
 - `outputs/hub_closure_ATL_rank_changes.png`
 - `outputs/airport_network_sample.png`
-- `figures/damping-factor-sensitivity.png`
 
-## Suggested final presentation structure
+## Deliverables
 
-1. Motivation: why airport network centrality matters
-2. Dataset: airports as nodes and routes as directed edges
-3. Linear algebra model: adjacency matrix, transition matrix, Google Matrix
-4. Algorithm: power iteration and convergence
-5. Baseline results: top airports by PageRank
-6. Damping factor sensitivity analysis: rankings across `d = 0.65, 0.75, 0.85, 0.95`
-7. Perturbation experiment: removing a major hub
-8. Interpretation: which airports gain importance and what this says about resilience
-9. Limitations and extensions: historical data, weighted passenger-volume version, multiple hub closures
+- `README.md` — project landing page
+- `DISCUSSION.md` — full written discussion of methodology, baseline results, damping-factor sensitivity, and hub-closure analysis
+- `airport_pagerank_notebook.ipynb` — reproducible end-to-end analysis
+- `scripts/sensitivity.py` — standalone damping-factor sensitivity analysis
+- `figures/` — figures used in the discussion and the presentation
+- `Airport_PageRank_Presentation.pptx` and `Airport_PageRank_Presentation.pdf` — class presentation
 
-## Extensions
+## Limitations
 
-Possible extensions include:
+- OpenFlights route data is historical.
+- The adjacency matrix is binary; it does not encode flight frequency, passenger volume, or seat capacity.
+- Each outgoing route from an airport is treated as equally likely.
+- The hub-closure simulation removes ATL completely rather than partially.
 
-- Compare PageRank with simple route count centrality.
-- Use passenger volume from BTS T-100 data as edge weights.
-- Run hub-removal simulations for several airports.
-- Measure the total change in PageRank distribution after each closure.
-- Create a map visualization using latitude and longitude.
-- Compare PageRank with eigenvector centrality, betweenness centrality, or degree centrality.
+## Possible extensions
+
+- Use BTS T-100 data to weight edges by passenger volume or flight frequency.
+- Compare PageRank with degree, betweenness, and eigenvector centrality.
+- Run hub-closure simulations for several airports.
+- Map centrality shifts geographically using airport latitude and longitude.
