@@ -3,6 +3,7 @@
 **Using the PageRank Algorithm to Identify Critical Airports in the U.S. Flight Network**
 
 Course project for Applied Linear Algebra.
+
 Team: Mindeok Seo, Jake Gust, Jeewan Khadka, Yijia Zhang, Alan Tang.
 
 ## Overview
