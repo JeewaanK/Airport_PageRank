@@ -143,10 +143,12 @@ This regenerates `figures/damping-factor-sensitivity.png` and writes `outputs/da
 
 ### NEPSE daily price history
 
-Download full daily OHLCV-style history for a NEPSE symbol (default **HDL**) via the unofficial Nepal Stock Exchange API. Requires **Python 3.11+** and network access to `nepalstock.com` (TLS verification is disabled in the script by design because of recurring SSL issues on that host).
+Download daily OHLCV history for a NEPSE symbol (default **HDL**) from listing/IPO through last close. **Python 3.11+**.
+
+`nepalstock.com`'s unofficial history endpoint only returns about one year of bars; older year windows come back empty. The script therefore pulls the long series from Merolagani's chart API and merges recent trade-count fields from [NepseUnofficialApi](https://github.com/basic-bgnr/NepseUnofficialApi) when available. HDL listing date used: **2003-03-21** (NEPSE / ShareSansar). Earliest vendor bars may start later than listing.
 
 ```bash
-pip install git+https://github.com/basic-bgnr/NepseUnofficialApi pandas
+pip install git+https://github.com/basic-bgnr/NepseUnofficialApi pandas requests
 python hdl_price_history.py            # HDL → HDL_price_history.csv
 python hdl_price_history.py NABIL      # any other symbol
 ```
