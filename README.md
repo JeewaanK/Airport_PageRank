@@ -154,7 +154,11 @@ python hdl_price_history.py SAGAR      # Sagar Distillery (listing 2025-11-06)
 python hdl_price_history.py NABIL      # any other symbol
 ```
 
-Generated `*_price_history.csv` files are gitignored and not committed.
+Root-level `*_price_history.csv` files from a local run are gitignored. Committed downloads live under `data/`:
+
+- [`data/HDL_price_history.csv`](data/HDL_price_history.csv)
+- [`data/SAGAR_price_history.csv`](data/SAGAR_price_history.csv)
+- [`data/nepse-price-history.zip`](data/nepse-price-history.zip) (both CSVs)
 
 Rebuild the presentation deck (optional):
 
