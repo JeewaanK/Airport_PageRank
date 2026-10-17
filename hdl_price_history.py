@@ -29,18 +29,22 @@ SYMBOL = (sys.argv[1] if len(sys.argv) > 1 else "HDL").upper()
 # NEPSE listing / IPO dates (public company pages). Used as the request start;
 # vendors may only have bars from a later first-trade day.
 LISTING_DATES = {
-    "HDL": date(2003, 3, 21),  # nepalstock / ShareSansar / Sun Securities
+    "HDL": date(2003, 3, 21),    # nepalstock / ShareSansar / Sun Securities
+    "SAGAR": date(2025, 11, 6),  # NEPSE listing; first trade 2025-11-09
 }
 
 MEROLAGANI_CHART = "https://merolagani.com/handlers/TechnicalChartHandler.ashx"
-HTTP_HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    ),
-    "Referer": f"https://merolagani.com/CompanyDetail.aspx?symbol={SYMBOL}",
-    "X-Requested-With": "XMLHttpRequest",
-}
+
+
+def _http_headers(symbol: str) -> dict:
+    return {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        ),
+        "Referer": f"https://merolagani.com/CompanyDetail.aspx?symbol={symbol}",
+        "X-Requested-With": "XMLHttpRequest",
+    }
 
 
 def listing_date_for(symbol: str) -> date:
@@ -68,7 +72,7 @@ def fetch_merolagani(symbol: str, start: date, end: date) -> pd.DataFrame:
             "currencyCode": "NPR",
         }
         resp = requests.get(
-            MEROLAGANI_CHART, params=params, headers=HTTP_HEADERS, timeout=60
+            MEROLAGANI_CHART, params=params, headers=_http_headers(symbol), timeout=60
         )
         resp.raise_for_status()
         data = resp.json()

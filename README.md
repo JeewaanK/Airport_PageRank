@@ -150,6 +150,7 @@ Download daily OHLCV history for a NEPSE symbol (default **HDL**) from listing/I
 ```bash
 pip install git+https://github.com/basic-bgnr/NepseUnofficialApi pandas requests
 python hdl_price_history.py            # HDL → HDL_price_history.csv
+python hdl_price_history.py SAGAR      # Sagar Distillery (listing 2025-11-06)
 python hdl_price_history.py NABIL      # any other symbol
 ```
 
