@@ -105,6 +105,7 @@ The network does not collapse: the U.S. system has a distributed hub structure, 
 ├── README.md                          Project landing page (this file)
 ├── DISCUSSION.md                      Full written discussion of methods and results
 ├── airport_pagerank_notebook.ipynb    End-to-end analysis notebook
+├── hdl_price_history.py               NEPSE daily price-history downloader (default: HDL)
 ├── scripts/
 │   └── sensitivity.py                 Damping-factor sensitivity script
 ├── data/
@@ -139,6 +140,18 @@ python scripts/sensitivity.py
 ```
 
 This regenerates `figures/damping-factor-sensitivity.png` and writes `outputs/damping_sensitivity.csv`.
+
+### NEPSE daily price history
+
+Download full daily OHLCV-style history for a NEPSE symbol (default **HDL**) via the unofficial Nepal Stock Exchange API. Requires **Python 3.11+** and network access to `nepalstock.com` (TLS verification is disabled in the script by design because of recurring SSL issues on that host).
+
+```bash
+pip install git+https://github.com/basic-bgnr/NepseUnofficialApi pandas
+python hdl_price_history.py            # HDL → HDL_price_history.csv
+python hdl_price_history.py NABIL      # any other symbol
+```
+
+Generated `*_price_history.csv` files are gitignored and not committed.
 
 Rebuild the presentation deck (optional):
 
