@@ -2,3 +2,6 @@ pandas
 numpy
 matplotlib
 networkx
+# NEPSE price-history downloader (hdl_price_history.py) also needs:
+#   pip install git+https://github.com/basic-bgnr/NepseUnofficialApi
+# Python 3.11+
