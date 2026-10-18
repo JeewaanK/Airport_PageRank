@@ -159,6 +159,7 @@ Root-level `*_price_history.csv` files from a local run are gitignored. Committe
 - [`data/HDL_price_history.csv`](data/HDL_price_history.csv)
 - [`data/SAGAR_price_history.csv`](data/SAGAR_price_history.csv)
 - [`data/nepse-price-history.zip`](data/nepse-price-history.zip) (both CSVs)
+- Commercial banks (19 equity): [`data/nepse_commercial_banks_latest_close.csv`](data/nepse_commercial_banks_latest_close.csv), [`data/nepse_commercial_banks_close_history.csv`](data/nepse_commercial_banks_close_history.csv), [`data/nepse_commercial_banks_closes.zip`](data/nepse_commercial_banks_closes.zip) — regenerate with `python scripts/fetch_nepse_commercial_bank_closes.py`
 
 Rebuild the presentation deck (optional):
 
