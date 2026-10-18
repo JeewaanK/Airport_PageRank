@@ -3,4 +3,5 @@ outputs/
 __pycache__/
 .ipynb_checkpoints/
 *.pyc
-*_price_history.csv
+# Script writes CSVs at repo root; keep committed copies under data/
+/*_price_history.csv
